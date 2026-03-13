@@ -23,16 +23,6 @@ log() {
 	echo $log_entry >> wordle.log
 }
 
-trap ctrl_c INT
-
-ctrl_c() {
-	echo "SIGINT captured."
-	echo "Exiting before full completion."
-	log_entry="Exiting before full completion. " 
-	log
-	exit 1
-}
-
 # Grab user input and sanitize
 echo "Enter the untried grey letters:"
 read -a grey_input
@@ -66,6 +56,17 @@ yellow_5=( $(echo "${yellow_5_input[@]}" | tr -d "[:blank:]" | tr -d "[:punct:]"
 
 # User input ended, start timer
 time=`date +'%s'`
+
+# We only want to start trapping SIGINT after user input has been finalized and the time variable has been initialized
+trap ctrl_c INT
+
+ctrl_c() {
+	echo "SIGINT captured."
+	echo "Exiting before full completion."
+	log_entry="Exiting before full completion. " 
+	log
+	exit 1
+}
 
 # Find possible letters in each non-green position. If there was already a green, set it as the only choice for that position
 yellow_all=( $(echo "${yellow_1[@]} ${yellow_2[@]} ${yellow_3[@]} ${yellow_4[@]} ${yellow_5[@]}"  | tr -d "[:blank:]" | tr -d "[:punct:]" | tr "[:lower:]" "[:upper:]" | grep -o . | sort  -u | tr "\n" " ") )
